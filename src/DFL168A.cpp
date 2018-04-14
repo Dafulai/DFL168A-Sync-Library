@@ -182,10 +182,14 @@ bool DFL168A::begin(bool intrude=true,bool Fast=false) {
     String ResponseStr;
     long MyLong;
     //Serial.begin(57600);  //debug 
-    delay(75);  // wait for "searing and version pass"
+    //delay(75);  // wait for "searing and version pass"   //version1.0.1
 
     mySerial->begin(57600);
     mySerial->setTimeout(Timeout+50);
+
+	ATCommand("AT Z");  //repower for sync  //version1.0.1
+	delay(75);  // wait for "searing and version pass"   //version1.0.1
+
     while (mySerial->available()) mySerial->read();
    
     ATCommand("ATi");
@@ -306,7 +310,7 @@ bool DFL168A::begin(bool intrude=true,bool Fast=false) {
     {
        SuccessCurrentProtocol=false;
        //Serial.println("I got warining");
-       return false;  
+       //return false;  //version1.0.1 modification because we want to execute "AT S 0" and "GPS Initilization"
     }
     //Serial.println("end waiting for warning");
     //Serial.println(ResponseStr.substring(2,9));
@@ -360,6 +364,11 @@ bool DFL168A::begin(bool intrude=true,bool Fast=false) {
     //AT S 0
     while(!ATCommand("AT S 0"));
     
+	//version1.0.1 add--start
+	//at dev1 tp 6  : GPS
+	while (!ATCommand("AT DEV1 TP 6"));
+	//version1.0.1 add--end
+
     //AT DEV1 PC
     if (!ATCommand("AT DEV1 PC"))  {
        SuccessCurrentProtocol=false;
@@ -539,12 +548,22 @@ void DFL168A::endTransparentSerial()
   if (TransparentSerialAvailable)
   {
     mySerial->write(EndTransparentChar);
+    #if 0  //version1.0.1
     myStr=mySerial->readStringUntil('>');   
     myStr.trim();    
     if (myStr=="") 
     {
       TransparentSerialAvailable=false;
     }
+    #else
+	delay(1);
+	myStr = mySerial->readString();
+	myStr.trim();
+	if ('>' == myStr.charAt(myStr.length() - 1))
+	{
+		TransparentSerialAvailable = false;
+	}
+    #endif
   }
   
 }
@@ -561,4 +580,35 @@ void DFL168A::end(void)
   //delay(10);
   mySerial->end();
 }
+
+//version1.0.1 add--start
+bool DFL168A::setSleepDelay(unsigned int SleepDelayms)
+{
+	String TempStr, TemStr2;
+	char myCMD[18];
+	TemStr2 = String(SleepDelayms, 16);
+	switch (TemStr2.length())
+	{
+	case 1:
+		TemStr2 = "000" + TemStr2;
+		break;
+	case 2:
+		TemStr2 = "00" + TemStr2;
+		break;
+	case 3:
+		TemStr2 = "0" + TemStr2;
+		break;
+	case 4:
+		break;
+	default:
+		TemStr2 = "FFFF";
+	}
+	TempStr = String("AT Sleep") + TemStr2;
+	TempStr.toCharArray(myCMD, 18);
+	if (ATCommand(myCMD))
+		return true;
+	else
+		return false;
+}
+//version1.0.1 add--End
 
