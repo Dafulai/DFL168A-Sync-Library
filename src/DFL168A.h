@@ -279,6 +279,35 @@ class PGN65262Class
    String FreshResultStr;
 };
 
+//version 1.0.2 add ---start
+class PGN64996Class
+{
+public:
+	class DFL168A * Pareant;
+	PGN64996Class();
+	PGN64996Class(class DFL168A * Pareant);
+	boolean refresh();
+	bool getPayLoad(int &PayLoad);	  //0 to 250%, 1%/bit, 0 offset
+private:
+	boolean SuccessFresh;	
+	String FreshResultStr;
+};
+
+class PGN61445Class
+{
+public:
+	class DFL168A * Pareant;
+	PGN61445Class();
+	PGN61445Class(class DFL168A * Pareant);
+	boolean refresh();
+	bool getCurrentGear(int &CurrentGear);   //-125 to 125 and 251,  1 gear value/bit, -125 offset, negative values are reverse gears, positive values are forward gears, zero is neutral. 251(0xFB) is park. 251 actual= 126, but I still use "251" for matching spec
+	bool getSelectedGear(int &SelectedGear);   //-125 to 125 and 251,  1 gear value/bit, -125 offset, negative values are reverse gears, positive values are forward gears, zero is neutral. 251(0xFB) is park. 251 actual= 126, but I still use "251" for matching spec
+private:
+	boolean SuccessFresh;
+	String FreshResultStr;
+};
+//version 1.0.2 add ----end
+
 class J1939Class
 {
   friend class DFL168A;
@@ -304,6 +333,9 @@ class J1939Class
    PGN65276Class PGN65276;
    PGN65265Class PGN65265;
    PGN57344Class PGN57344;
+   PGN64996Class PGN64996;//version 1.0.2 add
+   PGN61445Class PGN61445;//version 1.0.2 add
+
    bool getVIN(String &VIN);  
    //bool GetDTC(String &DTC);
    bool getDTC(byte &DTC_Num, long  (&SPN)[5], byte (&FMI)[5], byte (&CM)[5],byte (&OC)[5], byte DTCFormat=1 );
@@ -497,6 +529,8 @@ class DFL168A
    friend class PGN65276Class;
    friend class PGN65265Class;
    friend class PGN57344Class;
+   friend class PGN64996Class; //version 1.0.2 add
+   friend class PGN61445Class; //version 1.0.2 add
    public:
     DFL168A();
     //DFL168A(byte SerialNo, byte currProtocol,int Timeout, long J1939Baudrate, long DEV_Baudrate);
